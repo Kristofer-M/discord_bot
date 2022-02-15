@@ -13,7 +13,8 @@ class KrisKlient(discord.Client):
 
     def __init__(self, loop: AbstractEventLoop):
         super().__init__()
-        self.allow_run = True
+        # self.allow_run = True
+        self.alarm_tasks = None
         self.loop = loop
         self.days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
         self.puns = [
@@ -37,14 +38,15 @@ class KrisKlient(discord.Client):
         if message.content.startswith("!"):
             command = str(message.content).split(" ")[0][1:]
             if command == "alarm":
-                self.allow_run = True
-                loop.create_task(self.alarm(message))
+                # self.allow_run = True
+                self.alarm_task = loop.create_task(self.alarm(message))
             elif command == "hello":
                 loop.create_task(self.hello(message))
             elif command == "pun":
                 loop.create_task(self.pun(message))
             elif command == "stop":
-                self.allow_run = False
+                # self.allow_run = False
+                self.alarm_task.cancel()
             else:
                 message.channel.send("Unknown command.")
 
@@ -91,25 +93,23 @@ class KrisKlient(discord.Client):
         start_time = datetime.time(start_hour, start_minute)
 
         day_a = self.days.index(alarm_day)
-        day_b = self.days.index(dt.now().strftime("%A"))
+        day_b = self.days.index(dt.now().strftime("%A").lower())
         if day_a >= day_b:
             day_delta = day_a - day_b
         else:
             day_delta = 7 - abs(day_a - day_b)
 
         time_delta = dt.combine(dt.today(), alarm_time) - dt.combine(dt.today(), start_time)
-        time_delta += day_delta * seconds_in_day
+        day_delta = day_delta * seconds_in_day
         await message.channel.send("Alarm set for {0}".format(str(alarm)))
-        await asyncio.sleep((time_delta.seconds - dt.now().second))
-        if self.allow_run:
-            await message.channel.send("@everyone DING-DING-DING-DING-DING")
-            self.loop.create_task(self.repeat_weekly(message))
+        await asyncio.sleep((time_delta.seconds - dt.now().second) + day_delta)
+        await message.channel.send("@everyone DING-DING-DING-DING-DING")
+        self.alarm_task = self.loop.create_task(self.repeat_weekly(message))
 
     async def repeat_weekly(self, message):
-        await asyncio.sleep(seconds_in_week)
-        if self.allow_run:
+        while True:
+            await asyncio.sleep(2)
             await message.channel.send("@everyone DING-DING-DING-DING-DING")
-            self.loop.create_task(self.repeat_weekly(message))
 
 
 if __name__ == '__main__':
