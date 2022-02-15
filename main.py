@@ -126,7 +126,7 @@ class KrisKlient(discord.Client):
 
     async def repeat_weekly(self, message, alarm_name):
         while True:
-            await asyncio.sleep(2)
+            await asyncio.sleep(seconds_in_week)
             await message.channel.send(f'@everyone DING-DING-DING-DING-DING {alarm_name}')
 
 
