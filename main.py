@@ -38,6 +38,7 @@ class KrisKlient(discord.Client):
         if message.content.startswith("!"):
             parsed_message_content = str(message.content).split(" ")
             command = parsed_message_content[0][1:]
+
             if command == "alarm":
                 if len(parsed_message_content) < 4:
                     await message.channel.send("More arguments required.")
@@ -45,10 +46,13 @@ class KrisKlient(discord.Client):
                 else:
                     alarm_name = " ".join(parsed_message_content[3:])
                     self.alarm_tasks[alarm_name] = loop.create_task(self.alarm(message, alarm_name))
+
             elif command == "hello":
                 loop.create_task(self.hello(message))
+
             elif command == "pun":
                 loop.create_task(self.pun(message))
+
             elif command == "stop":
                 if len(parsed_message_content) < 2:
                     await message.channel.send("More arguments required.")
@@ -56,9 +60,11 @@ class KrisKlient(discord.Client):
                 else:
                     alarm_name = " ".join(parsed_message_content[1:])
                     self.alarm_tasks[alarm_name].cancel()
+
             elif command == "stopall":
                 for alarm_name in self.alarm_tasks:
                     self.alarm_tasks[alarm_name].cancel()
+
             else:
                 message.channel.send("Unknown command.")
 
