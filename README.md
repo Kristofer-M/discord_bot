@@ -5,5 +5,4 @@ This is a bot that I've made with help from friends that has some limited functi
 
  Future functionality plans include:
 * Playing music
-* Expanding alarm funcitonality
 * Rolling Dice
