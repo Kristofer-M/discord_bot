@@ -13,7 +13,6 @@ class KrisKlient(discord.Client):
 
     def __init__(self, loop: AbstractEventLoop):
         super().__init__()
-        # self.allow_run = True
         self.alarm_tasks = None
         self.loop = loop
         self.days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
@@ -21,6 +20,7 @@ class KrisKlient(discord.Client):
             "What happened to the guy who sued over his missing luggage? He lost his case.",
             "How did you get hit on the head with a book? I only have my shelf to blame.",
             "What did one blade of grass say to another about the lack of rain? I guess we'll just have to make dew.",
+            "I used to be addicted to soap, but I'm clean now."
         ]
 
     async def on_ready(self):
@@ -38,14 +38,12 @@ class KrisKlient(discord.Client):
         if message.content.startswith("!"):
             command = str(message.content).split(" ")[0][1:]
             if command == "alarm":
-                # self.allow_run = True
                 self.alarm_task = loop.create_task(self.alarm(message))
             elif command == "hello":
                 loop.create_task(self.hello(message))
             elif command == "pun":
                 loop.create_task(self.pun(message))
             elif command == "stop":
-                # self.allow_run = False
                 self.alarm_task.cancel()
             else:
                 message.channel.send("Unknown command.")
