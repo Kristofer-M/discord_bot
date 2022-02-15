@@ -31,6 +31,9 @@ class KrisKlient(discord.Client):
         if message.author == self.user:
             return
 
+        if 'thanos' in str(message.content).lower():
+            loop.create_task(self.send_thanos(message))
+
         if message.content.startswith("!"):
             command = str(message.content).split(" ")[0][1:]
             if command == "alarm":
@@ -45,8 +48,13 @@ class KrisKlient(discord.Client):
             else:
                 message.channel.send("Unknown command.")
 
+    async def send_thanos(self, message):
+        with open('thanos_smile.jpg', 'rb') as fp:
+            to_send = discord.File(fp, 'thanos.jpg')
+            await message.channel.send(file=to_send)
+
     async def pun(self, message):
-        await message.channel.send(self.puns[random.randrange(0, len(self.puns) - 1)])
+        await message.channel.send(random.choice(self.puns))
 
     async def hello(self, message):
         await message.channel.send("Hello!")
@@ -93,9 +101,9 @@ class KrisKlient(discord.Client):
         time_delta += day_delta * seconds_in_day
         await message.channel.send("Alarm set for {0}".format(str(alarm)))
         await asyncio.sleep((time_delta.seconds - dt.now().second))
-        await message.channel.send("@everyone DING-DING-DING-DING-DING")
-
-        self.loop.create_task(self.repeat_weekly(message))
+        if self.allow_run:
+            await message.channel.send("@everyone DING-DING-DING-DING-DING")
+            self.loop.create_task(self.repeat_weekly(message))
 
     async def repeat_weekly(self, message):
         await asyncio.sleep(seconds_in_week)
@@ -107,4 +115,4 @@ class KrisKlient(discord.Client):
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     client = KrisKlient(loop=loop)
-    client.run(os.environ.get('DISCORD_BOT_TOKEN'))
+    client.run(os.getenv('DISCORD_BOT_TOKEN'))
