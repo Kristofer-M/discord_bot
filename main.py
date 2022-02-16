@@ -36,15 +36,16 @@ class KrisKlient(discord.Client):
             loop.create_task(self.send_thanos(message))
 
         if message.content.startswith("!"):
-            parsed_message_content = str(message.content).split(" ")
+            parsed_message_content = str(message.content).split()
             command = parsed_message_content[0][1:]
-
             if command == "alarm":
-                if len(parsed_message_content) < 4:
-                    await message.channel.send("More arguments required.")
+                alarm_vars = await self.make_alarm(parsed_message_content, message)
+                try:
+                    user_names = alarm_vars[0]
+                    alarm_name = alarm_vars[1]
+                except TypeError:
                     return
-                alarm_name = " ".join(parsed_message_content[3:])
-                self.alarm_tasks[alarm_name] = loop.create_task(self.alarm(message, alarm_name))
+                self.alarm_tasks[alarm_name] = loop.create_task(self.alarm(message, alarm_name, user_names))
 
             elif command == "hello":
                 loop.create_task(self.hello(message))
@@ -58,6 +59,7 @@ class KrisKlient(discord.Client):
                     return
                 else:
                     alarm_name = " ".join(parsed_message_content[1:])
+                    self.alarm_tasks = self.alarm_tasks
                     self.alarm_tasks[alarm_name].cancel()
 
             elif command == "stopall":
@@ -65,7 +67,23 @@ class KrisKlient(discord.Client):
                     self.alarm_tasks[alarm_name].cancel()
 
             else:
-                message.channel.send("Unknown command.")
+                await message.channel.send("Unknown command.")
+
+    async def make_alarm(self, parsed_message_content: list, message):
+        if len(parsed_message_content) < 5:
+            await message.channel.send("More arguments required.")
+            return None
+        args = parsed_message_content[3:]
+        user_names = []
+        alarm_name = []
+        for arg in args:
+            if str(arg).startswith('<@'):
+                user_names.append(arg)
+            else:
+                alarm_name.append(arg)
+        user_names = ' '.join(user_names)
+        alarm_name = ' '.join(alarm_name)
+        return [user_names, alarm_name]
 
     async def send_thanos(self, message):
         with open('thanos_smile.jpg', 'rb') as fp:
@@ -78,9 +96,9 @@ class KrisKlient(discord.Client):
     async def hello(self, message):
         await message.channel.send("Hello!")
 
-    async def alarm(self, message, alarm_name):
+    async def alarm(self, message, alarm_name, user_names):
         dt = datetime.datetime
-        alarm_date = str(message.content).split(" ")
+        alarm_date = str(message.content).split()
         try:
             alarm_day = alarm_date[1]
             alarm_hour = alarm_date[2]
@@ -116,14 +134,14 @@ class KrisKlient(discord.Client):
         await message.channel.send("Alarm set for {0}".format(str(alarm)))
 
         await asyncio.sleep((time_delta.seconds - dt.now().second) + day_delta)
-        await message.channel.send(f'@everyone DING-DING-DING-DING-DING {alarm_name}')
+        await message.channel.send(f'DING-DING-DING-DING-DING {alarm_name} {user_names}')
 
-        self.alarm_tasks[alarm_name] = self.loop.create_task(self.repeat_weekly(message, alarm_name))
+        self.alarm_tasks[alarm_name] = self.loop.create_task(self.repeat_weekly(message, alarm_name, user_names))
 
-    async def repeat_weekly(self, message, alarm_name):
+    async def repeat_weekly(self, message, alarm_name, user_names):
         while True:
-            await asyncio.sleep(seconds_in_week)
-            await message.channel.send(f'@everyone DING-DING-DING-DING-DING {alarm_name}')
+            await asyncio.sleep(2)
+            await message.channel.send(f'DING-DING-DING-DING-DING {alarm_name} {user_names}')
 
 
 if __name__ == '__main__':
