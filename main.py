@@ -16,7 +16,6 @@ puns = [
 ]
 
 
-
 class KrisKlient(discord.Client):
 
     def __init__(self, loop: AbstractEventLoop):
@@ -39,21 +38,11 @@ class KrisKlient(discord.Client):
         if message.content.startswith("!"):
             parsed_message_content = str(message.content).split()
             command = parsed_message_content[0][1:]
-            if command == "alarm":
-                loop.create_task(self.alarm(message))
 
-            elif command == "hello":
-                loop.create_task(self.hello(message))
-
-            elif command == "pun":
-                loop.create_task(self.pun(message))
-
-            elif command == "stop":
-                loop.create_task(self.stop(message))
-
-            elif command == "stopall":
-                loop.create_task(self.stopall(message))
-
+            if hasattr(self, command):
+                func = getattr(self, command)
+                if callable(func):
+                    loop.create_task(func(message))
             else:
                 await message.channel.send("Unknown command.")
 
@@ -71,7 +60,6 @@ class KrisKlient(discord.Client):
             hour = alarm_hour.split(":")[0]
             minutes = alarm_hour.split(":")[1]
             alarm_time = datetime.time(int(hour), int(minutes))
-
 
             alarm = f'{alarm_day} {alarm_hour}'
         except ValueError as v:
@@ -140,7 +128,8 @@ class KrisKlient(discord.Client):
 
         alarm_name = alarm_vars['alarm_name']
         user_names = alarm_vars['user_names']
-        self.alarm_tasks[alarm_name] = self.loop.create_task(self.repeat_weekly(message, alarm_name, user_names, wait_time))
+        self.alarm_tasks[alarm_name] = self.loop.create_task(
+            self.repeat_weekly(message, alarm_name, user_names, wait_time))
 
     async def repeat_weekly(self, message, alarm_name, user_names, wait_time):
         while True:
