@@ -40,12 +40,12 @@ class KrisKlient(discord.Client):
             command = parsed_message_content[0][1:]
 
             if command == "alarm":
-                if len(parsed_message_content) < 4:
-                    await message.channel.send("More arguments required.")
-                    return
-                else:
-                    alarm_name = " ".join(parsed_message_content[3:])
-                    self.alarm_tasks[alarm_name] = loop.create_task(self.alarm(message, alarm_name))
+                # if len(parsed_message_content) < 4:
+                #     await message.channel.send("More arguments required.")
+                #     return
+                # else:
+                alarm_name = " ".join(parsed_message_content[3:])
+                self.alarm_tasks[alarm_name] = loop.create_task(self.alarm(message, alarm_name))
 
             elif command == "hello":
                 loop.create_task(self.hello(message))
@@ -79,39 +79,34 @@ class KrisKlient(discord.Client):
     async def hello(self, message):
         await message.channel.send("Hello!")
 
-    async def check_hour(self, hour):
-        numbers = hour.split(":")
-        if numbers[0] == hour:
-            return False
-        if int(numbers[0]) < 0 or int(numbers[0]) > 24:
-            return False
-        if int(numbers[1]) < 0 or int(numbers[1]) > 60:
-            return False
-        return True
-
     async def alarm(self, message, alarm_name):
+        dt = datetime.datetime
         alarm_date = str(message.content).split(" ")
-        alarm_day = alarm_date[1]
-        alarm_hour = alarm_date[2]
+        try:
+            alarm_day = alarm_date[1]
+            alarm_hour = alarm_date[2]
 
-        if alarm_day.lower() not in self.days:
-            await message.channel.send("Day unrecognized.")
+            hour = alarm_hour.split(":")[0]
+            minutes = alarm_hour.split(":")[1]
+            alarm_time = datetime.time(int(hour), int(minutes))
+
+            day_a = self.days.index(alarm_day)
+            day_b = self.days.index(dt.now().strftime("%A").lower())
+        except ValueError as v:
+            if 'list' in str(v):
+                v = str(v).split(" ")[0]
+                v += ' is not a day.'
+            await message.channel.send(v)
             return
-        if not await self.check_hour(alarm_hour):
-            await message.channel.send("Unrecognized time format, enter time in `HH:MM` format using military hours.")
+        except IndexError:
+            await message.channel.send("More arguments required.")
             return
 
         alarm = f'{alarm_day} {alarm_hour}'
-        dt = datetime.datetime
-        hour = alarm_hour.split(":")[0]
-        minutes = alarm_hour.split(":")[1]
-        alarm_time = datetime.time(int(hour), int(minutes))
         start_hour = dt.now().hour
         start_minute = dt.now().minute
         start_time = datetime.time(start_hour, start_minute)
 
-        day_a = self.days.index(alarm_day)
-        day_b = self.days.index(dt.now().strftime("%A").lower())
         if day_a >= day_b:
             day_delta = day_a - day_b
         else:
@@ -121,7 +116,7 @@ class KrisKlient(discord.Client):
         day_delta = day_delta * seconds_in_day
         await message.channel.send("Alarm set for {0}".format(str(alarm)))
         await asyncio.sleep((time_delta.seconds - dt.now().second) + day_delta)
-        await message.channel.send("@everyone DING-DING-DING-DING-DING")
+        await message.channel.send(f'@everyone DING-DING-DING-DING-DING {alarm_name}')
         self.alarm_tasks[alarm_name] = self.loop.create_task(self.repeat_weekly(message, alarm_name))
 
     async def repeat_weekly(self, message, alarm_name):
