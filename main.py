@@ -40,10 +40,9 @@ class KrisKlient(discord.Client):
             command = parsed_message_content[0][1:]
 
             if command == "alarm":
-                # if len(parsed_message_content) < 4:
-                #     await message.channel.send("More arguments required.")
-                #     return
-                # else:
+                if len(parsed_message_content) < 4:
+                    await message.channel.send("More arguments required.")
+                    return
                 alarm_name = " ".join(parsed_message_content[3:])
                 self.alarm_tasks[alarm_name] = loop.create_task(self.alarm(message, alarm_name))
 
@@ -85,6 +84,7 @@ class KrisKlient(discord.Client):
         try:
             alarm_day = alarm_date[1]
             alarm_hour = alarm_date[2]
+            alarm = f'{alarm_day} {alarm_hour}'
 
             hour = alarm_hour.split(":")[0]
             minutes = alarm_hour.split(":")[1]
@@ -99,10 +99,9 @@ class KrisKlient(discord.Client):
             await message.channel.send(v)
             return
         except IndexError:
-            await message.channel.send("More arguments required.")
+            await message.channel.send("Please enter time in HH:MM format.")
             return
 
-        alarm = f'{alarm_day} {alarm_hour}'
         start_hour = dt.now().hour
         start_minute = dt.now().minute
         start_time = datetime.time(start_hour, start_minute)
@@ -111,12 +110,14 @@ class KrisKlient(discord.Client):
             day_delta = day_a - day_b
         else:
             day_delta = 7 - abs(day_a - day_b)
+        day_delta = day_delta * seconds_in_day
 
         time_delta = dt.combine(dt.today(), alarm_time) - dt.combine(dt.today(), start_time)
-        day_delta = day_delta * seconds_in_day
         await message.channel.send("Alarm set for {0}".format(str(alarm)))
+
         await asyncio.sleep((time_delta.seconds - dt.now().second) + day_delta)
         await message.channel.send(f'@everyone DING-DING-DING-DING-DING {alarm_name}')
+
         self.alarm_tasks[alarm_name] = self.loop.create_task(self.repeat_weekly(message, alarm_name))
 
     async def repeat_weekly(self, message, alarm_name):
