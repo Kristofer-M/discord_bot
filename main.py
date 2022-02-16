@@ -7,6 +7,14 @@ from asyncio import AbstractEventLoop
 
 seconds_in_week = 604800
 seconds_in_day = 86400
+days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+puns = [
+    "What happened to the guy who sued over his missing luggage? He lost his case.",
+    "How did you get hit on the head with a book? I only have my shelf to blame.",
+    "What did one blade of grass say to another about the lack of rain? I guess we'll just have to make dew.",
+    "I used to be addicted to soap, but I'm clean now."
+]
+
 
 
 class KrisKlient(discord.Client):
@@ -15,13 +23,6 @@ class KrisKlient(discord.Client):
         super().__init__()
         self.alarm_tasks = {}
         self.loop = loop
-        self.days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-        self.puns = [
-            "What happened to the guy who sued over his missing luggage? He lost his case.",
-            "How did you get hit on the head with a book? I only have my shelf to blame.",
-            "What did one blade of grass say to another about the lack of rain? I guess we'll just have to make dew.",
-            "I used to be addicted to soap, but I'm clean now."
-        ]
 
     async def on_ready(self):
         print("Logged in as {0}".format(self.user))
@@ -64,7 +65,7 @@ class KrisKlient(discord.Client):
 
         try:
             alarm_day = parsed_message_content[1]
-            day = self.days.index(alarm_day)
+            day = days.index(alarm_day)
 
             alarm_hour = parsed_message_content[2]
             hour = alarm_hour.split(":")[0]
@@ -108,7 +109,7 @@ class KrisKlient(discord.Client):
             await message.channel.send(file=to_send)
 
     async def pun(self, message):
-        await message.channel.send(random.choice(self.puns))
+        await message.channel.send(random.choice(puns))
 
     async def hello(self, message):
         await message.channel.send("Hello!")
@@ -120,7 +121,7 @@ class KrisKlient(discord.Client):
             return
 
         day_a = alarm_vars['day']
-        day_b = self.days.index(dt.now().strftime("%A").lower())
+        day_b = days.index(dt.now().strftime("%A").lower())
 
         if day_a >= day_b:
             day_delta = day_a - day_b
