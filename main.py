@@ -53,21 +53,13 @@ class KrisKlient(discord.Client):
                 loop.create_task(self.stop(message))
 
             elif command == "stopall":
-                loop.create_task(self.stopall(message))
+                loop.create_task(self.stop_all(message))
 
             elif command == 'keepalive':
                 loop.create_task(self.keep_alive(message))
 
             else:
                 await message.channel.send("Unknown command.")
-
-    async def keep_alive(self, message):
-        message.channel.send('I\'m alive!')
-        parsed_message_content = str(message.content).split()
-        target = parsed_message_content[1]
-        asyncio.sleep(30)
-        await message.channel.send(f'!keepalive {client.user} {target}')
-
 
     async def get_alarm_vars(self, message):
         parsed_message_content = str(message.content).split()
@@ -171,7 +163,7 @@ class KrisKlient(discord.Client):
             self.alarm_tasks[alarm_name].cancel()
             await message.channel.send(f'{alarm_name} stopped.')
 
-    async def stopall(self, message):
+    async def stop_all(self, message):
         for alarm_name in self.alarm_tasks:
             self.alarm_tasks[alarm_name].cancel()
         await message.channel.send("All alarms stopped.")
