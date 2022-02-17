@@ -63,7 +63,7 @@ class KrisKlient(discord.Client):
         message.channel.send('I\'m alive!')
         parsed_message_content = str(message.content).split()
         target = parsed_message_content[1]
-        asyncio.sleep(60)
+        asyncio.sleep(30)
         await message.channel.send(f'!keepalive {client.user} {target}')
 
 
