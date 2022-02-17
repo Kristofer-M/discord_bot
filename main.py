@@ -38,11 +38,21 @@ class KrisKlient(discord.Client):
         if message.content.startswith("!"):
             parsed_message_content = str(message.content).split()
             command = parsed_message_content[0][1:]
+            if command == "alarm":
+                loop.create_task(self.alarm(message))
 
-            if hasattr(self, command):
-                func = getattr(self, command)
-                if callable(func):
-                    loop.create_task(func(message))
+            elif command == "hello":
+                loop.create_task(self.hello(message))
+
+            elif command == "pun":
+                loop.create_task(self.pun(message))
+
+            elif command == "stop":
+                loop.create_task(self.stop(message))
+
+            elif command == "stopall":
+                loop.create_task(self.stopall(message))
+
             else:
                 await message.channel.send("Unknown command.")
 
