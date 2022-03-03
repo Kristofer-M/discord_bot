@@ -1,11 +1,18 @@
+import json
 import os
 import random
 import asyncio
 import datetime
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 from dateutil import parser
+
+# def AlarmTask():
+#     def __init__(self, name):
+#         self.name = name
+#         self.task = alarm.start
+
 
 bot = commands.Bot(command_prefix='!')
 
@@ -33,7 +40,6 @@ async def on_message(message):
         return
 
     if 'thanos' in str(message.content).lower():
-        # loop.create_task(send_thanos(message))
         await send_thanos(message)
 
     elif '7 foot frame' in str(message.content).lower():
@@ -44,7 +50,6 @@ async def on_message(message):
             'https://tenor.com/view/encanto-encanto-luisa-luisa-eye-luisa-eye-twitch-encanto-meme-gif-24306690')
 
     await bot.process_commands(message)
-
 
 
 async def get_alarm_vars(context: commands.Context, day, time, args):
@@ -122,41 +127,61 @@ async def alarm(context, day, time, *args):
     alarm_name = ' '.join(alarm_name)
 
     alarm = f'{day} {time}'
-    future_date = parser.parse(alarm)
     await context.channel.send("Alarm set for {0}".format(str(alarm)))
+    future_date = parser.parse(alarm)
     wait_time = future_date - dt.now()
     wait_time = wait_time.seconds
-
-    await repeat_weekly(context, alarm_name, user_names, wait_time)
-
-
-async def repeat_weekly(context, alarm_name, user_names, wait_time):
-    while True:
-        await asyncio.sleep(wait_time)
-        await context.channel.send(f'{alarm_name} {user_names}')
-        wait_time = seconds_in_week
+    alarm_tasks[alarm_name] = alarm_start.start(context, wait_time, alarm_name, user_names)
 
 
-# @bot.command()
-# async def stop(context):
-#     parsed_message_content = str(context.content).split()
-#     if len(parsed_message_content) < 2:
-#         await context.channel.send("More arguments required.")
-#         return
-#     else:
-#         alarm_name = " ".join(parsed_message_content[1:])
-#         alarm_tasks[alarm_name].cancel()
-#         await context.channel.send(f'{alarm_name} stopped.')
-#
-#
-# @bot.command()
-# async def stop_all(context):
-#     for alarm_name in alarm_tasks:
-#         alarm_tasks[alarm_name].cancel()
-#     await context.channel.send("All alarms stopped.")
+@tasks.loop(count=1)
+async def alarm_start(context, wait_time, alarm_name, user_names):
+    await asyncio.sleep(wait_time)
+    alarm_tasks[alarm_name] = repeat_weekly.start(context, alarm_name, user_names)
+
+
+@tasks.loop(seconds=2)
+async def repeat_weekly(context, alarm_name, user_names):
+    await context.channel.send(f'{alarm_name} {user_names}')
+
+
+@bot.command()
+async def stop(context):
+    parsed_message_content = str(context.message.content).split()
+    if len(parsed_message_content) < 2:
+        await context.channel.send("More arguments required.")
+        return
+    else:
+        alarm_name = " ".join(parsed_message_content[1:])
+        alarm_tasks[alarm_name].cancel()
+        await context.channel.send(f'{alarm_name} stopped.')
+
+
+@bot.command()
+async def stop_all(context):
+    for alarm_name in alarm_tasks:
+        alarm_tasks[alarm_name].cancel()
+    await context.channel.send("All alarms stopped.")
+
+
+# TODO add casting time
+# TODO fix spells having too long text for discord
+@bot.command()
+async def spell(context, *args):
+    spell_name = (' '.join(args)).lower()
+    with open('dndspells.json', mode='r') as spell_file:
+        spell_data = json.load(spell_file)
+        spell = spell_data["spell"][spell_name]
+        to_send = f'>>> {spell["name"]}\n' \
+                  f'{spell["level"]} level {spell["school"]}\n' \
+                  f'Range: {spell["range"]}\n' \
+                  f'Components: {spell["components"]}\n' \
+                  f'Duration: {spell["duration"]}\n' \
+                  f'{spell["desc"]}\n' \
+                  f'{spell["upcast"]}'
+        await context.channel.send(to_send)
 
 
 if __name__ == '__main__':
-    # alarm_tasks = {}
-    # loop = asyncio.get_event_loop()
+    alarm_tasks = {}
     bot.run(os.getenv('DISCORD_BOT_TOKEN'))
