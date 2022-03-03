@@ -164,7 +164,6 @@ async def stop_all(context):
     await context.channel.send("All alarms stopped.")
 
 
-# TODO add casting time
 # TODO fix spells having too long text for discord
 @bot.command()
 async def spell(context, *args):
@@ -174,6 +173,7 @@ async def spell(context, *args):
         spell = spell_data["spell"][spell_name]
         to_send = f'>>> {spell["name"]}\n' \
                   f'{spell["level"]} level {spell["school"]}\n' \
+                  f'Casting time: {spell["time"]}\n'\
                   f'Range: {spell["range"]}\n' \
                   f'Components: {spell["components"]}\n' \
                   f'Duration: {spell["duration"]}\n' \
