@@ -186,28 +186,19 @@ async def spell(context, *args):
 
 @bot.command()
 async def roll(context, arg1, *args):
-    total_result = ['`']
+    total_result = []
     if arg1 == 'adv':
         dice_to_roll = ''.join(args)
-        total_result = ['[']
-        result = []
         num_rolls = int(dice_to_roll[0])
         for i in range(num_rolls):
-            dice_roll = dice.roll(f'2d{dice_to_roll[2:]}')
-            num1 = int(dice_roll[0])
-            num2 = int(dice_roll[1])
-            result.append(str(max(num1, num2)))
-        result = ', '.join(result)
-        total_result.append(result)
-        total_result.append(']')
+            dice_roll = list(dice.roll(f'2d{dice_to_roll[2:]}'))
+            total_result.append((max(dice_roll)))
 
     else:
         dice_to_roll = arg1
-        temp = dice.roll(dice_to_roll)
-        total_result.append(str(temp))
+        total_result = list(dice.roll(dice_to_roll))
 
-    total_result.append('`')
-    total_result = ''.join(total_result)
+    total_result = f'`{total_result}`'
     await context.channel.send(total_result)
 
 
