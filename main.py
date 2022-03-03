@@ -7,6 +7,7 @@ import datetime
 import discord
 from discord.ext import commands, tasks
 from dateutil import parser
+import dice
 
 # def AlarmTask():
 #     def __init__(self, name):
@@ -24,7 +25,8 @@ puns = [
     "What happened to the guy who sued over his missing luggage? He lost his case.",
     "How did you get hit on the head with a book? I only have my shelf to blame.",
     "What did one blade of grass say to another about the lack of rain? I guess we'll just have to make dew.",
-    "I used to be addicted to soap, but I'm clean now."
+    "I used to be addicted to soap, but I'm clean now.",
+    "A Human, Elf and Dragonborn walk into a bar, the Dwarf walks under it"
 ]
 
 
@@ -173,13 +175,40 @@ async def spell(context, *args):
         spell = spell_data["spell"][spell_name]
         to_send = f'>>> {spell["name"]}\n' \
                   f'{spell["level"]} level {spell["school"]}\n' \
-                  f'Casting time: {spell["time"]}\n'\
+                  f'Casting time: {spell["time"]}\n' \
                   f'Range: {spell["range"]}\n' \
-                  f'Components: {spell["components"]}\n' \
+                  f'Components: {spell["components"].upper()}\n' \
                   f'Duration: {spell["duration"]}\n' \
                   f'{spell["desc"]}\n' \
                   f'{spell["upcast"]}'
         await context.channel.send(to_send)
+
+
+@bot.command()
+async def roll(context, arg1, *args):
+    total_result = ['`']
+    if arg1 == 'adv':
+        dice_to_roll = ''.join(args)
+        total_result = ['[']
+        result = []
+        num_rolls = int(dice_to_roll[0])
+        for i in range(num_rolls):
+            dice_roll = dice.roll(f'2d{dice_to_roll[2:]}')
+            num1 = int(dice_roll[0])
+            num2 = int(dice_roll[1])
+            result.append(str(max(num1, num2)))
+        result = ', '.join(result)
+        total_result.append(result)
+        total_result.append(']')
+
+    else:
+        dice_to_roll = arg1
+        temp = dice.roll(dice_to_roll)
+        total_result.append(str(temp))
+
+    total_result.append('`')
+    total_result = ''.join(total_result)
+    await context.channel.send(total_result)
 
 
 if __name__ == '__main__':
