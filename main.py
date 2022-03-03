@@ -1,14 +1,17 @@
 import os
 import random
 import asyncio
-from asyncio import AbstractEventLoop
 import datetime
 
 import discord
+from discord.ext import commands
+from dateutil import parser
 
+bot = commands.Bot(command_prefix='!')
 
 seconds_in_week = 604800
 seconds_in_day = 86400
+
 days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 puns = [
     "What happened to the guy who sued over his missing luggage? He lost his case.",
@@ -18,158 +21,142 @@ puns = [
 ]
 
 
-class KrisKlient(discord.Client):
+@bot.event
+async def on_ready():
+    print("Logged in as {0}".format(bot.user))
+    await bot.change_presence(status=discord.Status.online, activity=discord.Game(name="ur mom lol"))
 
-    def __init__(self, loop: AbstractEventLoop):
-        super().__init__()
-        self.alarm_tasks = {}
-        self.loop = loop
 
-    async def on_ready(self):
-        print("Logged in as {0}".format(self.user))
+@bot.event
+async def on_message(message):
+    if message.author == bot.user:
+        return
 
-    async def on_message(self, message):
-        loop = self.loop
+    if 'thanos' in str(message.content).lower():
+        # loop.create_task(send_thanos(message))
+        await send_thanos(message)
 
-        if message.author == self.user:
-            return
+    elif '7 foot frame' in str(message.content).lower():
+        await message.channel.send('https://tenor.com/view/encanto-camilo-madrigal-gif-24270871')
 
-        if 'thanos' in str(message.content).lower():
-            loop.create_task(self.send_thanos(message))
+    elif 'everything is fine' in str(message.content).lower():
+        await message.channel.send(
+            'https://tenor.com/view/encanto-encanto-luisa-luisa-eye-luisa-eye-twitch-encanto-meme-gif-24306690')
 
-        if message.content.startswith("!"):
-            parsed_message_content = str(message.content).split()
-            command = parsed_message_content[0][1:]
-            if command == "alarm":
-                loop.create_task(self.alarm(message))
+    await bot.process_commands(message)
 
-            elif command == "hello":
-                loop.create_task(self.hello(message))
 
-            elif command == "pun":
-                loop.create_task(self.pun(message))
 
-            elif command == "stop":
-                loop.create_task(self.stop(message))
+async def get_alarm_vars(context: commands.Context, day, time, args):
+    parsed_message_content = str(context.message.content).split()
+    if len(parsed_message_content) < 5:
+        await context.channel.send("More arguments required.")
+        return None
 
-            elif command == "stopall":
-                loop.create_task(self.stop_all(message))
+    try:
+        index_day = days.index(day)
 
-            elif command == 'keepalive':
-                loop.create_task(self.keep_alive(message))
+        alarm_hour = time
+        hour = alarm_hour.split(":")[0]
+        minutes = alarm_hour.split(":")[1]
+        alarm_time = datetime.time(int(hour), int(minutes))
 
-            else:
-                await message.channel.send("Unknown command.")
+        alarm = f'{day} {alarm_hour}'
+    except ValueError as v:
+        if 'list' in str(v):
+            v = str(v).split(" ")[0]
+            v += ' is not a day.'
+        await context.channel.send(v)
+        return None
+    except IndexError:
+        await context.channel.send("Please enter time in HH:MM format.")
+        return None
 
-    async def get_alarm_vars(self, message):
-        parsed_message_content = str(message.content).split()
-        if len(parsed_message_content) < 5:
-            await message.channel.send("More arguments required.")
-            return None
-
-        try:
-            alarm_day = parsed_message_content[1]
-            day = days.index(alarm_day)
-
-            alarm_hour = parsed_message_content[2]
-            hour = alarm_hour.split(":")[0]
-            minutes = alarm_hour.split(":")[1]
-            alarm_time = datetime.time(int(hour), int(minutes))
-
-            alarm = f'{alarm_day} {alarm_hour}'
-        except ValueError as v:
-            if 'list' in str(v):
-                v = str(v).split(" ")[0]
-                v += ' is not a day.'
-            await message.channel.send(v)
-            return None
-        except IndexError:
-            await message.channel.send("Please enter time in HH:MM format.")
-            return None
-
-        args = parsed_message_content[3:]
-        user_names = []
-        alarm_name = []
-        for arg in args:
-            if str(arg).startswith('<@'):
-                user_names.append(arg)
-            else:
-                alarm_name.append(arg)
-        user_names = ' '.join(user_names)
-        alarm_name = ' '.join(alarm_name)
-
-        return {
-            'user_names': user_names,
-            'alarm_name': alarm_name,
-            'alarm': alarm,
-            'alarm_time': alarm_time,
-            'day': day,
-        }
-
-    async def send_thanos(self, message):
-        with open('thanos_smile.jpg', 'rb') as fp:
-            to_send = discord.File(fp, 'thanos.jpg')
-            await message.channel.send(file=to_send)
-
-    async def pun(self, message):
-        await message.channel.send(random.choice(puns))
-
-    async def hello(self, message):
-        await message.channel.send("Hello!")
-
-    async def alarm(self, message):
-        dt = datetime.datetime
-        alarm_vars = await self.get_alarm_vars(message)
-        if alarm_vars is None:
-            return
-
-        day_a = alarm_vars['day']
-        day_b = days.index(dt.now().strftime("%A").lower())
-
-        if day_a >= day_b:
-            day_delta = day_a - day_b
+    user_names = []
+    alarm_name = []
+    for arg in args:
+        if str(arg).startswith('<@'):
+            user_names.append(arg)
         else:
-            day_delta = 7 - abs(day_a - day_b)
-        day_delta = day_delta * seconds_in_day
+            alarm_name.append(arg)
+    user_names = ' '.join(user_names)
+    alarm_name = ' '.join(alarm_name)
 
-        alarm_time = alarm_vars['alarm_time']
-        start_time = datetime.time(dt.now().hour, dt.now().minute)
+    return {
+        'user_names': user_names,
+        'alarm_name': alarm_name,
+        'alarm': alarm,
+        'alarm_time': alarm_time,
+        'day': index_day,
+    }
 
-        time_delta = dt.combine(dt.today(), alarm_time) - dt.combine(dt.today(), start_time)
 
-        alarm = alarm_vars['alarm']
-        await message.channel.send("Alarm set for {0}".format(str(alarm)))
-        wait_time = (time_delta.seconds - dt.now().second) + day_delta
+async def send_thanos(message):
+    with open('thanos_smile.jpg', 'rb') as fp:
+        to_send = discord.File(fp, 'thanos.jpg')
+        await message.channel.send(file=to_send)
 
-        alarm_name = alarm_vars['alarm_name']
-        user_names = alarm_vars['user_names']
-        self.alarm_tasks[alarm_name] = self.loop.create_task(
-            self.repeat_weekly(message, alarm_name, user_names, wait_time))
 
-    async def repeat_weekly(self, message, alarm_name, user_names, wait_time):
-        while True:
-            await asyncio.sleep(wait_time)
-            await message.channel.send(f'DING-DING-DING-DING-DING {alarm_name} {user_names}')
-            wait_time = seconds_in_week
+@bot.command()
+async def pun(context):
+    await context.channel.send(random.choice(puns))
 
-    async def stop(self, message):
-        parsed_message_content = str(message.content).split()
-        if len(parsed_message_content) < 2:
-            await message.channel.send("More arguments required.")
-            return
+
+@bot.command()
+async def hello(context):
+    await context.channel.send("Hello!")
+
+
+@bot.command()
+async def alarm(context, day, time, *args):
+    dt = datetime.datetime
+    user_names = []
+    alarm_name = []
+
+    for arg in args:
+        if str(arg).startswith('<@'):
+            user_names.append(arg)
         else:
-            alarm_name = " ".join(parsed_message_content[1:])
-            self.alarm_tasks = self.alarm_tasks
-            self.alarm_tasks[alarm_name].cancel()
-            await message.channel.send(f'{alarm_name} stopped.')
+            alarm_name.append(arg)
+    user_names = ' '.join(user_names)
+    alarm_name = ' '.join(alarm_name)
 
-    async def stop_all(self, message):
-        for alarm_name in self.alarm_tasks:
-            self.alarm_tasks[alarm_name].cancel()
-        await message.channel.send("All alarms stopped.")
+    alarm = f'{day} {time}'
+    future_date = parser.parse(alarm)
+    await context.channel.send("Alarm set for {0}".format(str(alarm)))
+    wait_time = future_date - dt.now()
+    wait_time = wait_time.seconds
+
+    await repeat_weekly(context, alarm_name, user_names, wait_time)
+
+
+async def repeat_weekly(context, alarm_name, user_names, wait_time):
+    while True:
+        await asyncio.sleep(wait_time)
+        await context.channel.send(f'{alarm_name} {user_names}')
+        wait_time = seconds_in_week
+
+
+# @bot.command()
+# async def stop(context):
+#     parsed_message_content = str(context.content).split()
+#     if len(parsed_message_content) < 2:
+#         await context.channel.send("More arguments required.")
+#         return
+#     else:
+#         alarm_name = " ".join(parsed_message_content[1:])
+#         alarm_tasks[alarm_name].cancel()
+#         await context.channel.send(f'{alarm_name} stopped.')
+#
+#
+# @bot.command()
+# async def stop_all(context):
+#     for alarm_name in alarm_tasks:
+#         alarm_tasks[alarm_name].cancel()
+#     await context.channel.send("All alarms stopped.")
 
 
 if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    client = KrisKlient(loop=loop)
-    client.run(os.getenv('DISCORD_BOT_TOKEN'))
+    # alarm_tasks = {}
+    # loop = asyncio.get_event_loop()
+    bot.run(os.getenv('DISCORD_BOT_TOKEN'))
