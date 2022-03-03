@@ -166,7 +166,7 @@ async def stop_all(context):
     await context.channel.send("All alarms stopped.")
 
 
-# TODO fix spells having too long text for discord
+
 @bot.command()
 async def spell(context, *args):
     spell_name = (' '.join(args)).lower()
@@ -181,7 +181,11 @@ async def spell(context, *args):
                   f'Duration: {spell["duration"]}\n' \
                   f'{spell["desc"]}\n' \
                   f'{spell["upcast"]}'
-        await context.channel.send(to_send)
+        try:
+            await context.channel.send(to_send)
+        except discord.errors.HTTPException:
+            await context.channel.send(to_send[:1997] + '...')
+            await context.channel.send('>>> ...' + to_send[1997:])
 
 
 @bot.command()
