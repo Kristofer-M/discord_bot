@@ -1,21 +1,12 @@
 import os
 import random
-import asyncio
-import datetime
-import re
 
 import discord
-from discord.ext import commands, tasks
-from dateutil import parser
+from discord.ext import commands
 
 import dnd
+import scheduling
 
-# def AlarmTask():
-#     def __init__(self, name):
-#         self.name = name
-#         self.task = alarm.start
-
-die_regex = '[0-9]+d[0-9]+'
 
 bot = commands.Bot(command_prefix='!', activity=discord.Game(name="Under Construction"))
 
@@ -57,6 +48,10 @@ async def send_thanos(message):
         await message.channel.send(file=to_send)
 
 
+async def send_message(context, text):
+    await context.channel.send(text)
+
+
 @bot.command()
 async def pun(context):
     await context.channel.send(random.choice(puns))
@@ -69,54 +64,19 @@ async def hello(context):
 
 @bot.command()
 async def alarm(context, day, time, *args):
-    dt = datetime.datetime
-    user_names = []
-    alarm_name = []
-
-    for arg in args:
-        if str(arg).startswith('<@'):
-            user_names.append(arg)
-        else:
-            alarm_name.append(arg)
-    user_names = ' '.join(user_names)
-    alarm_name = ' '.join(alarm_name)
-
-    alarm = f'{day} {time}'
-    await context.channel.send("Alarm set for {0}".format(str(alarm)))
-    future_date = parser.parse(alarm)
-    wait_time = future_date - dt.now()
-    wait_time = wait_time.seconds
-    alarm_tasks[alarm_name] = alarm_start.start(context, wait_time, alarm_name, user_names)
-
-
-@tasks.loop(count=1)
-async def alarm_start(context, wait_time, alarm_name, user_names):
-    await asyncio.sleep(wait_time)
-    alarm_tasks[alarm_name] = repeat_weekly.start(context, alarm_name, user_names)
-
-
-@tasks.loop(seconds=2)
-async def repeat_weekly(context, alarm_name, user_names):
-    await context.channel.send(f'{alarm_name} {user_names}')
+    await scheduling.alarm(context, day, time, args)
 
 
 @bot.command()
-async def stop(context):
-    parsed_message_content = str(context.message.content).split()
-    if len(parsed_message_content) < 2:
-        await context.channel.send("More arguments required.")
-        return
-    else:
-        alarm_name = " ".join(parsed_message_content[1:])
-        alarm_tasks[alarm_name].cancel()
-        await context.channel.send(f'{alarm_name} stopped.')
+async def stop(context, *args):
+    args = [arg for arg in args]
+    schedule_name = ' '.join(args)
+    await scheduling.stop(context, schedule_name)
 
 
 @bot.command()
-async def stop_all(context):
-    for alarm_name in alarm_tasks:
-        alarm_tasks[alarm_name].cancel()
-    await context.channel.send("All alarms stopped.")
+async def stopall(context):
+    await scheduling.stop_all(context)
 
 
 @bot.command()
@@ -131,8 +91,7 @@ async def spell(context, *args):
 
 @bot.command()
 async def test(context, *args):
-    if re.match(die_regex, '2d8+3d6'):
-        print('yeppers')
+    pass
 
 
 @bot.command()
@@ -142,5 +101,4 @@ async def roll(context, *args):
 
 
 if __name__ == '__main__':
-    alarm_tasks = {}
     bot.run(os.getenv('DISCORD_BOT_TOKEN'))
