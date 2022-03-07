@@ -26,6 +26,8 @@ def find_spell_dice(spell_name, dnd_spells):
         return spell_dice.group()
     except KeyError:
         pass
+    except json.JSONDecodeError:
+        pass
 
 
 def roll(*args):
