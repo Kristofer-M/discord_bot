@@ -7,7 +7,8 @@ from discord.ext import commands
 import dnd
 import scheduling
 
-
+emoji = '<:madge:889181914236350484>'
+target = 'seiarc#7644'
 bot = commands.Bot(command_prefix='!', activity=discord.Game(name="Under Construction"))
 
 puns = [
@@ -26,8 +27,11 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    if message.author == bot.user or str(message.author) != 'FallenRune#8591':
+    if message.author == bot.user:
         return
+    print(message.content)
+    if str(message.author) == target:
+        await message.add_reaction('emoji')
 
     if 'thanos' in str(message.content).lower():
         await send_thanos(message)
@@ -63,6 +67,11 @@ async def hello(context):
 
 
 @bot.command()
+async def madge(context):
+    await context.message.add_reaction('<:madge:889181914236350484>')
+
+
+@bot.command()
 async def alarm(context, day, time, *args):
     await scheduling.alarm(context, day, time, args)
 
@@ -95,9 +104,26 @@ async def test(context, *args):
 
 
 @bot.command()
+async def exec(context, *args):
+    if str(context.message.author) != 'FallenRune#8591':
+        return
+    args = list(args)
+    args = " ".join(args)
+    await eval(args)
+
+
+@bot.command()
 async def roll(context, *args):
     result = dnd.roll(args)
     await context.channel.send(result)
+
+async def set_target(new_target):
+    global target
+    target = new_target
+
+async def set_emoji(new_emoji):
+    global emoji
+    emoji = new_emoji
 
 
 if __name__ == '__main__':

@@ -62,6 +62,7 @@ def roll(*args):
 
 
 def spell(*args):
+    args = [sub_arg for arg in args for sub_arg in arg]
     spell_name = (' '.join(args)).lower()
     with open('dndspells.json', mode='r') as spell_file:
         spell_data = json.load(spell_file)
