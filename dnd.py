@@ -66,7 +66,12 @@ def spell(*args):
     spell_name = (' '.join(args)).lower()
     with open('dndspells.json', mode='r') as spell_file:
         spell_data = json.load(spell_file)
-        spell = spell_data["spell"][spell_name]
+        try:
+            spell = spell_data["spell"][spell_name]
+        except KeyError:
+            spell_name = re.search(re.compile(f'(\\w*\\s*)*{spell_name}(\\s*\\w*)*'), str(spell_data["spell"].keys()))
+            spell_name = spell_name.group()
+            spell = spell_data["spell"][spell_name]
         to_send = f'>>> {spell["name"]}\n' \
                   f'{spell["level"]} level {spell["school"]}\n' \
                   f'Casting time: {spell["time"]}\n' \
@@ -76,3 +81,7 @@ def spell(*args):
                   f'{spell["desc"]}\n' \
                   f'{spell["upcast"]}'
     return to_send
+
+
+if __name__ == '__main__':
+    print(spell((('pattern',),)))
