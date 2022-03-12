@@ -18,24 +18,24 @@ def roll_adv(die):
     return result
 
 
-def find_spell_dice(spell_name, dnd_spells):
+def find_spell_dice(spell_name, spell_data):
     try:
-        spell_data = json.load(dnd_spells)
         spell = spell_data["spell"][spell_name]
         spell_dice = re.search(die_regex, spell['desc'])
         return spell_dice.group()
-    except KeyError:
-        pass
-    except json.JSONDecodeError:
-        pass
+    except KeyError as e:
+        print(e)
+    # except json.JSONDecodeError:
+    #     pass
 
 
 def roll(*args):
     args = [arg for tup in args for arg in tup]
     dnd_spells = open('dndspells.json')
+    spell_data = json.load(dnd_spells)
     for arg in args:
         if not re.match(die_regex, arg) or arg != 'adv':
-            to_roll = find_spell_dice(arg, dnd_spells)
+            to_roll = find_spell_dice(arg, spell_data)
             if to_roll is not None:
                 index = args.index(arg)
                 args[index] = to_roll

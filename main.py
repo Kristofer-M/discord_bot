@@ -27,9 +27,9 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    if message.author == bot.user:
+    if message.author == bot.user or str(message.author) != 'FallenRune#8591':
         return
-    print(message.content)
+
     if str(message.author) == target:
         await message.add_reaction('emoji')
 
