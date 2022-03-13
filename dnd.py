@@ -5,8 +5,19 @@ from math import log
 import dice
 from simpleeval import simple_eval
 
-die_regex = '[0-9]+d[0-9]+'
+import main
 
+allowed_expressions = [
+    '+',
+    '**',
+    '(',
+    ')',
+    '*',
+    '/',
+    '-'
+]
+
+die_regex = '[0-9]+d[0-9]+'
 
 def roll_adv(die):
     num_rolls = int(die[0])
@@ -25,8 +36,10 @@ def find_spell_dice(spell_name, spell_data):
         return spell_dice.group()
     except KeyError as e:
         print(e)
-    # except json.JSONDecodeError:
-    #     pass
+    except AttributeError:
+        if spell_name not in allowed_expressions:
+            main.send_message(f'{spell_name} either doesn\'t exist or I wasn\'t able to find dice to roll for it.')
+        return None
 
 
 def roll(*args):
@@ -69,8 +82,10 @@ def spell(*args):
         try:
             spell = spell_data["spell"][spell_name]
         except KeyError:
-            spell_name = re.search(re.compile(f'(\\w*\\s*)*{spell_name}(\\s*\\w*)*'), str(spell_data["spell"].keys()))
-            spell_name = spell_name.group()
+            for spell_item in spell_data['spell'].keys():
+                if spell_name in spell_item:
+                    spell_name = spell_item
+                    break
             spell = spell_data["spell"][spell_name]
         to_send = f'>>> {spell["name"]}\n' \
                   f'{spell["level"]} level {spell["school"]}\n' \
@@ -84,4 +99,4 @@ def spell(*args):
 
 
 if __name__ == '__main__':
-    print(spell((('pattern',),)))
+    print(spell('lance'))
