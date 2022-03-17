@@ -5,19 +5,19 @@ from math import log
 import dice
 from simpleeval import simple_eval
 
-import main
-
-allowed_expressions = [
-    '+',
-    '**',
-    '(',
-    ')',
-    '*',
-    '/',
-    '-'
-]
+# allowed_expressions = [
+#     '+',
+#     '**',
+#     '(',
+#     ')',
+#     '*',
+#     '/',
+#     '-'
+# ]
 
 die_regex = '[0-9]+d[0-9]+'
+word_regex = f'[^\d\W]+'
+
 
 def roll_adv(die):
     num_rolls = int(die[0])
@@ -32,33 +32,44 @@ def roll_adv(die):
 def find_spell_dice(spell_name, spell_data):
     try:
         spell = spell_data["spell"][spell_name]
-        spell_dice = re.search(die_regex, spell['desc'])
-        return spell_dice.group()
-    except KeyError as e:
-        print(e)
-    except AttributeError:
-        if spell_name not in allowed_expressions:
-            main.send_message(f'{spell_name} either doesn\'t exist or I wasn\'t able to find dice to roll for it.')
-        return None
+    except KeyError:
+        spell_name = find_spell(spell_name, spell_data)
+        if spell_name is None:
+            return None
+        spell = spell_data['spell'][spell_name]
+
+    spell_dice = re.search(die_regex, spell['desc'])
+    return spell_dice.group()
+    # except KeyError:
+    #     return None
+    # except AttributeError:
+    #     # if spell_name not in allowed_expressions:
+    #     #     main.send_message(f'{spell_name} either doesn\'t exist or I wasn\'t able to find dice to roll for it.')
+    #     return None
 
 
-def roll(*args):
-    args = [arg for tup in args for arg in tup]
+def roll(expression):
+    # args = [arg for tup in args for arg in tup]
     dnd_spells = open('dndspells.json')
     spell_data = json.load(dnd_spells)
-    for arg in args:
-        if not re.match(die_regex, arg) or arg != 'adv':
-            to_roll = find_spell_dice(arg, spell_data)
-            if to_roll is not None:
-                index = args.index(arg)
-                args[index] = to_roll
+    spells = re.findall(word_regex, expression)
+    try:
+        spells.remove('d')
+    except ValueError:
+        pass
+    for spell in spells:
+        die = find_spell_dice(spell, spell_data)
+        if die is None:
+            continue
+        expression = expression.replace(spell, die)
+
     dnd_spells.close()
 
-    expression = ''.join(args)
+    # expression = ''.join(expression)
     dice_to_roll = re.findall(die_regex, expression)
     roll_result = []
 
-    if 'adv' in args:
+    if 'adv' in expression:
         expression = expression.replace('adv', '')
         for die in dice_to_roll:
             roll_result.append(list(roll_adv(die)))
@@ -74,19 +85,26 @@ def roll(*args):
     return to_send
 
 
-def spell(*args):
-    args = [sub_arg for arg in args for sub_arg in arg]
-    spell_name = (' '.join(args)).lower()
+def find_spell(spell_name, spell_data):
+    for spell_item in spell_data['spell'].keys():
+        if spell_name in spell_item:
+            return spell_item
+    return None
+
+
+def spell(spell_name):
+    spell_name = spell_name.lower()
     with open('dndspells.json', mode='r') as spell_file:
         spell_data = json.load(spell_file)
         try:
             spell = spell_data["spell"][spell_name]
         except KeyError:
-            for spell_item in spell_data['spell'].keys():
-                if spell_name in spell_item:
-                    spell_name = spell_item
-                    break
+            temp = find_spell(spell_name, spell_data)
+            if temp is None:
+                return f'{spell_name} not found.'
+            spell_name = temp
             spell = spell_data["spell"][spell_name]
+
         to_send = f'>>> {spell["name"]}\n' \
                   f'{spell["level"]} level {spell["school"]}\n' \
                   f'Casting time: {spell["time"]}\n' \
@@ -99,4 +117,4 @@ def spell(*args):
 
 
 if __name__ == '__main__':
-    print(spell('lance'))
+    print(spell('frost'))

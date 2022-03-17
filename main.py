@@ -90,6 +90,7 @@ async def stopall(context):
 
 @bot.command()
 async def spell(context, *args):
+    args = ' '.join(args)
     to_send = dnd.spell(args)
     try:
         await context.channel.send(to_send)
@@ -114,12 +115,15 @@ async def exec(context, *args):
 
 @bot.command()
 async def roll(context, *args):
+    args = ' '.join(args)
     result = dnd.roll(args)
     await context.channel.send(result)
+
 
 async def set_target(new_target):
     global target
     target = new_target
+
 
 async def set_emoji(new_emoji):
     global emoji
