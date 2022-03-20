@@ -1,4 +1,5 @@
 import json
+import math
 import re
 from math import log
 
@@ -119,19 +120,44 @@ def spell(spell_name):
 def rollv(number):
     result = dice.roll(f'{number}d10')
     num_success = 0
+    num_crits = 0
     for roll in result:
-        roll_num = int(roll)
-        if roll_num >= 8:
+        number = int(roll)
+        if number >= 6:
             num_success += 1
-            if roll_num == 10:
-                result.append(dice.roll('1d10')[0])
-
-        elif roll_num == 1:
+            if number == 10:
+                num_crits += 1
+        elif number == 1:
             num_success -= 1
+
+    if num_crits > 0:
+        if num_crits % 2 == 0:
+            num_success += num_crits
+        else:
+            num_success += num_crits - 1
 
     to_send = f'Roll: `{result}` Successes: {num_success}'
     return to_send
 
 
+def testv(numbers):
+    num_success = 0
+    num_crits = 0
+    for number in numbers:
+        if number >= 6:
+            num_success += 1
+            if number == 10:
+                num_crits += 1
+        elif number == 1:
+            num_success -= 1
+    if num_crits > 0:
+        if num_crits % 2 == 0:
+            num_success += num_crits
+        else:
+            num_success += num_crits - 1
+    to_send = f'Roll: `{numbers}` Successes: {num_success}'
+    return to_send
+
+
 if __name__ == '__main__':
-    print(rollv('5'))
+    print(testv([10, 5, 6, 10, 2, 3, 1]))
