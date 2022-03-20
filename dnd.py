@@ -116,5 +116,22 @@ def spell(spell_name):
     return to_send
 
 
+def rollv(number):
+    result = dice.roll(f'{number}d10')
+    num_success = 0
+    for roll in result:
+        roll_num = int(roll)
+        if roll_num >= 8:
+            num_success += 1
+            if roll_num == 10:
+                result.append(dice.roll('1d10')[0])
+
+        elif roll_num == 1:
+            num_success -= 1
+
+    to_send = f'Roll: `{result}` Successes: {num_success}'
+    return to_send
+
+
 if __name__ == '__main__':
-    print(spell('frost'))
+    print(rollv('5'))

@@ -27,7 +27,7 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    if message.author == bot.user or str(message.author) != 'FallenRune#8591':
+    if message.author == bot.user:
         return
 
     if str(message.author) == target:
@@ -100,6 +100,17 @@ async def spell(context, *args):
 
 
 @bot.command()
+async def roll(context, *args):
+    args = ' '.join(args)
+    result = dnd.roll(args)
+    await context.channel.send(result)
+
+@bot.command()
+async def rollv(context, number):
+    result = dnd.rollv(number)
+    await context.channel.send(result)
+
+@bot.command()
 async def test(context, *args):
     pass
 
@@ -111,13 +122,6 @@ async def exec(context, *args):
     args = list(args)
     args = " ".join(args)
     await eval(args)
-
-
-@bot.command()
-async def roll(context, *args):
-    args = ' '.join(args)
-    result = dnd.roll(args)
-    await context.channel.send(result)
 
 
 async def set_target(new_target):
