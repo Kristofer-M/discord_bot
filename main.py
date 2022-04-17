@@ -1,3 +1,4 @@
+import asyncio
 import os
 import random
 
@@ -106,8 +107,8 @@ async def roll(context, *args):
     await context.channel.send(result)
 
 @bot.command()
-async def rollv(context, number):
-    result = dnd.rollv(number)
+async def rollv(context, number, hunger=None, target=None):
+    result = dnd.rollv(number, hunger, target)
     await context.channel.send(result)
 
 @bot.command()
@@ -122,6 +123,19 @@ async def exec(context, *args):
     args = list(args)
     args = " ".join(args)
     await eval(args)
+
+@bot.command()
+async def write(context, *text):
+    text = ' '.join(text)
+    text = text.replace('"', '\\"')
+    text_str = text[0]
+    message = await context.send(text_str)
+    text = text[1:]
+
+    for letter in text:
+        text_str += letter
+        await asyncio.sleep(0.2)
+        await message.edit(content=text_str)
 
 
 async def set_target(new_target):
