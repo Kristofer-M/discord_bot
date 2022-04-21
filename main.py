@@ -12,6 +12,23 @@ emoji = '<:madge:889181914236350484>'
 target = 'seiarc#7644'
 bot = commands.Bot(command_prefix='!', activity=discord.Game(name="Under Construction"))
 
+win = {
+    'rock': 'scissors',
+    'paper': 'rock',
+    'scissors': 'paper'
+}
+lose = {
+    'rock': 'paper',
+    'scissors': 'rock',
+    'paper': 'scissors'
+}
+
+emoji = {
+    'rock': '✊',
+    'paper': '✋',
+    'scissors': '✌️'
+}
+
 puns = [
     "What happened to the guy who sued over his missing luggage? He lost his case.",
     "How did you get hit on the head with a book? I only have my shelf to blame.",
@@ -106,10 +123,12 @@ async def roll(context, *args):
     result = dnd.roll(args)
     await context.channel.send(result)
 
+
 @bot.command()
 async def rollv(context, number, hunger=None, target=None):
     result = dnd.rollv(number, hunger, target)
     await context.channel.send(result)
+
 
 @bot.command()
 async def test(context, *args):
@@ -124,6 +143,7 @@ async def exec(context, *args):
     args = " ".join(args)
     await eval(args)
 
+
 @bot.command()
 async def write(context, *text):
     text = ' '.join(text)
@@ -136,6 +156,35 @@ async def write(context, *text):
         text_str += letter
         await asyncio.sleep(0.2)
         await message.edit(content=text_str)
+
+
+@bot.command()
+async def game(context, choice):
+    to_send = '>>> '
+    if choice.lower() not in ['rock', 'paper', 'scissors']:
+        await context.send('Enter a valid option.')
+        return
+
+    to_send += f'You picked {emoji[choice.lower()]}\n'
+    # await context.send()
+
+    outcome = random.choice(["You won", "You lost", "You drew"])
+    bot_pick = ''
+    if outcome == 'You won':
+        to_send += f'Bot picks {emoji[win[choice]]}\n'
+        # await context.send()
+        bot_pick = emoji[win[choice]]
+    elif outcome == 'You lost':
+        to_send += f'Bot picks {emoji[lose[choice]]}\n'
+        # await context.send()
+        bot_pick = emoji[lose[choice]]
+    else:
+        to_send += f'Bot picks {emoji[choice.lower()]}\n'
+        bot_pick = emoji[choice.lower()]
+
+    to_send += f'{emoji[choice.lower()]} vs {bot_pick}\n'
+    to_send += outcome
+    await context.send(to_send)
 
 
 async def set_target(new_target):
