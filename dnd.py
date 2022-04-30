@@ -1,5 +1,6 @@
 import json
 import math
+import random
 import re
 from math import log
 
@@ -119,36 +120,8 @@ def spell(spell_name):
 
 def rollv(number, hunger, target):
     result = dice.roll(f'{number}d10')
-    num_success = 0
-    num_crits = 0
-    for roll in result:
-        number = int(roll)
-        if number >= 6:
-            num_success += 1
-            if number == 10:
-                num_crits += 1
-        elif number == 1:
-            num_success -= 1
 
-    if num_crits > 0:
-        if num_crits % 2 == 0:
-            num_success += num_crits
-        else:
-            num_success += num_crits - 1
-
-    to_send = f'Roll: `{result}` Successes: {num_success}'
-
-    if hunger is not None and target is not None:
-        hunger = int(hunger)
-        target = int(target)
-        hunger_roll = result[-1:-hunger - 1:-1]
-
-        if num_success >= target:
-            hunger_result = 'Messy Critical!' if 10 in hunger_roll else 'Success!'
-        else:
-            hunger_result = 'Bestial Failure!' if 1 in hunger_roll else 'Failure!'
-
-        to_send += f' **{hunger_result}**'
+    to_send = get_successes(result, hunger, target)
 
     return to_send
 
@@ -183,5 +156,59 @@ def testv(numbers, hunger=None):
     return to_send
 
 
-if __name__ == '__main__':
-    print(testv([10, 5, 6, 10, 2, 1, 2], 2))
+def rerollv(message, amount, hunger, target):
+    numbers = []
+    smallest_nums = []
+    for char in message:
+        if char == ']':
+            break
+        if str.isdigit(char):
+            numbers.append(int(char))
+
+    range_num = 0 if hunger is None else int(hunger)
+
+    for i in range(len(numbers) - range_num):
+        if len(smallest_nums) != int(amount):
+            smallest_nums.append(numbers[i])
+        else:
+            for j in range(len(smallest_nums)):
+                if numbers[i] < smallest_nums[j]:
+                    smallest_nums[j] = numbers[i]
+
+    for num in smallest_nums:
+        numbers[numbers.index(num)] = random.randint(1, 10)
+
+    to_send = get_successes(numbers, hunger, target)
+
+    return to_send
+
+
+def get_successes(numbers, hunger=None, target=None):
+    num_success = 0
+    num_crits = 0
+    for number in numbers:
+        if number >= 6:
+            num_success += 1
+            if number == 10:
+                num_crits += 1
+        elif number == 1:
+            num_success -= 1
+
+    to_send = f'Roll: `{numbers}` Successes: {num_success}'
+
+    if hunger is not None and target is not None:
+        hunger = int(hunger)
+        target = int(target)
+        hunger_roll = numbers[-1:-hunger - 1:-1]
+
+        if num_success >= target:
+            hunger_result = 'Messy Critical!' if 10 in hunger_roll and num_crits > 0 else 'Success!'
+        else:
+            hunger_result = 'Bestial Failure!' if 1 in hunger_roll else 'Failure!'
+
+        to_send += f' **{hunger_result}**'
+
+    return to_send
+
+# if __name__ == '__main__':
+# print(testv([10, 5, 6, 10, 2, 1, 2], 2))
