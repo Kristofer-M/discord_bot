@@ -126,34 +126,32 @@ def rollv(number, hunger, target):
     return to_send
 
 
-def testv(numbers, hunger=None):
-    num_success = 0
-    num_crits = 0
-    for number in numbers:
-        if number >= 6:
-            num_success += 1
-            if number == 10:
-                num_crits += 1
-        elif number == 1:
-            num_success -= 1
-    if num_crits > 0:
-        if num_crits % 2 == 0:
-            num_success += num_crits
-        else:
-            num_success += num_crits - 1
-    to_send = f'Roll: `{numbers}` Successes: {num_success}'
-
-    if hunger is not None:
-        hunger_result = None
-        hunger_roll = numbers[-1:-hunger - 1:-1]
-        if 1 in hunger_roll:
-            hunger_result = 'Bestial Failure!'
-        if 10 in hunger_roll:
-            hunger_result = 'Messy Critical!'
-        if hunger_result is not None:
-            to_send += f' **{hunger_result}**'
-
-    return to_send
+# def testv(numbers, hunger=None):
+#     num_success = 0
+#     num_crits = 0
+#     for number in numbers:
+#         if number >= 6:
+#             num_success += 1
+#             if number == 10:
+#                 num_crits += 1
+#                 if num_crits % 2 == 0:
+#                     num_success += 2
+#         elif number == 1:
+#             num_success -= 1
+#
+#     to_send = f'Roll: `{numbers}` Successes: {num_success}'
+#
+#     if hunger is not None:
+#         hunger_result = None
+#         hunger_roll = numbers[-1:-hunger - 1:-1]
+#         if 1 in hunger_roll:
+#             hunger_result = 'Bestial Failure!'
+#         if 10 in hunger_roll:
+#             hunger_result = 'Messy Critical!'
+#         if hunger_result is not None:
+#             to_send += f' **{hunger_result}**'
+#
+#     return to_send
 
 
 def rerollv(message, amount, hunger, target):
@@ -191,6 +189,8 @@ def get_successes(numbers, hunger=None, target=None):
             num_success += 1
             if number == 10:
                 num_crits += 1
+                if num_crits % 2 == 0:
+                    num_success += 2
         elif number == 1:
             num_success -= 1
 
