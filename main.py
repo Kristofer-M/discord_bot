@@ -198,6 +198,12 @@ async def game(context, choice):
     await context.send(to_send)
 
 
+@bot.command()
+async def timecode(context, year, month, day, hour, minute):
+    result = scheduling.timecode(year, month, day, hour, minute)
+    await context.send(result)
+
+
 async def set_target(new_target):
     global target
     target = new_target

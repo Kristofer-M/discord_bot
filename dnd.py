@@ -166,7 +166,7 @@ def rerollv(message, amount, hunger, target):
     range_num = 0 if hunger is None else int(hunger)
 
     for i in range(len(numbers) - range_num):
-        if len(smallest_nums) != int(amount):
+        if len(smallest_nums) <= int(amount):
             smallest_nums.append(numbers[i])
         else:
             for j in range(len(smallest_nums)):
@@ -210,5 +210,6 @@ def get_successes(numbers, hunger=None, target=None):
 
     return to_send
 
-# if __name__ == '__main__':
+if __name__ == '__main__':
+    print(roll("1d10 * 2d10"))
 # print(testv([10, 5, 6, 10, 2, 1, 2], 2))

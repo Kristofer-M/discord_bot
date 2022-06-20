@@ -61,3 +61,15 @@ async def alarm(context, day, time, *args):
     wait_time = wait_time.seconds
     print(f'The name of the alarm is: {alarm_name}')
     scheduled_tasks[alarm_name] = ScheduledTask(alarm_name, context, wait_time, alarm_name, user_names)
+
+
+
+def timecode(year, month, day, hour, minute):
+    tem = datetime.datetime(int(year), int(month), int(day), int(hour), int(minute))
+    epoch = datetime.datetime(1970, 1, 1)
+    delta = tem - epoch
+    result = f'<t:{int(delta.total_seconds())}>'
+    return result
+
+# if __name__ == '__main__':
+#     # print((int)((datetime.datetime.now() - datetime.datetime(1970, 1, 1)).total_seconds()))
