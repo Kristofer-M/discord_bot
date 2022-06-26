@@ -1,5 +1,4 @@
 import json
-import math
 import random
 import re
 from math import log
@@ -52,20 +51,7 @@ def find_spell_dice(spell_name, spell_data):
 
 def roll(expression):
     # args = [arg for tup in args for arg in tup]
-    dnd_spells = open('dndspells.json')
-    spell_data = json.load(dnd_spells)
-    spells = re.findall(word_regex, expression)
-    try:
-        spells.remove('d')
-    except ValueError:
-        pass
-    for spell in spells:
-        die = find_spell_dice(spell, spell_data)
-        if die is None:
-            continue
-        expression = expression.replace(spell, die)
-
-    dnd_spells.close()
+    expression = replace_spell_dice(expression)
 
     # expression = ''.join(expression)
     dice_to_roll = re.findall(die_regex, expression)
@@ -85,6 +71,23 @@ def roll(expression):
     total_result = simple_eval(expression, functions={'log': lambda x: log(x)})
     to_send = f'`{roll_result}` Result: {total_result}'
     return to_send
+
+
+def replace_spell_dice(expression):
+    dnd_spells = open('dndspells.json')
+    spell_data = json.load(dnd_spells)
+    spells = re.findall(word_regex, expression)
+    try:
+        spells.remove('d')
+    except ValueError:
+        pass
+    for spell in spells:
+        die = find_spell_dice(spell, spell_data)
+        if die is None:
+            continue
+        expression = expression.replace(spell, die)
+    dnd_spells.close()
+    return expression
 
 
 def find_spell(spell_name, spell_data):
@@ -216,6 +219,6 @@ def get_successes(numbers, hunger=None, target=None):
 
     return to_send
 
+
 if __name__ == '__main__':
     print(roll("1d10 * 2d10"))
-# print(testv([10, 5, 6, 10, 2, 1, 2], 2))
