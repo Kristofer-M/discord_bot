@@ -133,6 +133,7 @@ async def rollv(context, number, hunger=None, target=None):
 @bot.command()
 async def rerollv(context, number, hunger=None, target=None):
     c_history = await context.channel.history(limit=10).flatten()
+    result = "No roll message found."
     for message in c_history:
         if str(message.author) == "Wizard's Assistant#0029":
             if 'Roll' in str(message.content):

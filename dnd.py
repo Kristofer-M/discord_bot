@@ -156,7 +156,6 @@ def rollv(number, hunger, target):
 
 def rerollv(message, amount, hunger, target):
     numbers = []
-    smallest_nums = []
     for char in message:
         if char == ']':
             break
@@ -165,13 +164,7 @@ def rerollv(message, amount, hunger, target):
 
     range_num = 0 if hunger is None else int(hunger)
 
-    for i in range(len(numbers) - range_num):
-        if len(smallest_nums) <= int(amount):
-            smallest_nums.append(numbers[i])
-        else:
-            for j in range(len(smallest_nums)):
-                if numbers[i] < smallest_nums[j]:
-                    smallest_nums[j] = numbers[i]
+    smallest_nums = get_smallest_nums(amount, numbers, range_num)
 
     for num in smallest_nums:
         numbers[numbers.index(num)] = random.randint(1, 10)
@@ -179,6 +172,19 @@ def rerollv(message, amount, hunger, target):
     to_send = get_successes(numbers, hunger, target)
 
     return to_send
+
+
+def get_smallest_nums(amount, numbers, range_num):
+    smallest_nums = []
+    for i in range(len(numbers) - range_num):
+        if len(smallest_nums) < int(amount):
+            smallest_nums.append(numbers[i])
+        else:
+            for j in range(len(smallest_nums)):
+                if numbers[i] < smallest_nums[j]:
+                    smallest_nums[j] = numbers[i]
+                    break
+    return smallest_nums
 
 
 def get_successes(numbers, hunger=None, target=None):
