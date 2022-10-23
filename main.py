@@ -152,10 +152,10 @@ async def rollv(context, number, hunger=None, target=None):
 
 
 @bot.command()
-async def rerollv(context, number, hunger=None, target=None):
-    c_history = await context.channel.history(limit=10).flatten()
+async def rerollv(context: discord.ext.commands.Context, number, hunger=None, target=None):
+    c_history = context.channel.history(limit=10)
     result = "No roll message found."
-    for message in c_history:
+    async for message in c_history:
         if str(message.author) == "Wizard's Assistant#0029":
             if 'Roll' in str(message.content):
                 result = dnd.rerollv(str(message.content), number, hunger, target)
