@@ -34,7 +34,7 @@ def find_spell_dice(spell_name, spell_data):
     try:
         spell = spell_data["spell"][spell_name]
     except KeyError:
-        spell_name = find_spell(spell_name, spell_data)
+        spell_name = find_feature(spell_name, spell_data, 'spell')
         if spell_name is None:
             return None
         spell = spell_data['spell'][spell_name]
@@ -73,12 +73,22 @@ def roll(expression):
     return to_send
 
 
+def battle(target, expression):
+    target = int(target)
+    count = 0
+    dice_rolled = dice.roll(expression)
+    for number in dice_rolled:
+        if number >= target:
+            count += 1
+    return count
+
+
 def replace_spell_dice(expression):
     dnd_spells = open('dndspells.json')
     spell_data = json.load(dnd_spells)
-    spells = re.findall(word_regex, expression)
+    temp = re.findall(word_regex, expression)
     try:
-        spells.remove('d')
+        spells = [i for i in temp if i != 'd']
     except ValueError:
         pass
     for spell in spells:
@@ -90,10 +100,10 @@ def replace_spell_dice(expression):
     return expression
 
 
-def find_spell(spell_name, spell_data):
-    for spell_item in spell_data['spell'].keys():
-        if spell_name in spell_item:
-            return spell_item
+def find_feature(feature_name, feature_data, type):
+    for data_item in feature_data[type].keys():
+        if feature_name in data_item:
+            return data_item
     return None
 
 
@@ -104,7 +114,7 @@ def spell(spell_name):
         try:
             spell = spell_data["spell"][spell_name]
         except KeyError:
-            temp = find_spell(spell_name, spell_data)
+            temp = find_feature(spell_name, spell_data, 'spell')
             if temp is None:
                 return f'{spell_name} not found.'
             spell_name = temp
@@ -124,7 +134,7 @@ def spell(spell_name):
 def rollv(number, hunger, target):
     result = dice.roll(f'{number}d10')
 
-    to_send = get_successes(result, hunger, target)
+    to_send = get_successesv(result, hunger, target)
 
     return to_send
 
@@ -172,7 +182,7 @@ def rerollv(message, amount, hunger, target):
     for num in smallest_nums:
         numbers[numbers.index(num)] = random.randint(1, 10)
 
-    to_send = get_successes(numbers, hunger, target)
+    to_send = get_successesv(numbers, hunger, target)
 
     return to_send
 
@@ -190,7 +200,31 @@ def get_smallest_nums(amount, numbers, range_num):
     return smallest_nums
 
 
-def get_successes(numbers, hunger=None, target=None):
+def rollm(number, success_criteria):
+    numbers = dice.roll(f'{number}d10')
+
+    result = get_successesm(numbers, success_criteria)
+
+    return result
+
+
+def get_successesm(numbers, success_criteria):
+    num_success = 0
+
+    for number in numbers:
+        if number >= success_criteria:
+            num_success += 1
+            if number == 10:
+                numbers.append(int(dice.roll("1d10")))
+        if number == 1:
+            num_success -= 1
+
+    to_send = f'Roll: `{numbers}` Successes: {num_success}'
+
+    return to_send
+
+
+def get_successesv(numbers, hunger=None, target=None):
     num_success = 0
     num_crits = 0
     for number in numbers:
@@ -217,6 +251,24 @@ def get_successes(numbers, hunger=None, target=None):
 
         to_send += f' **{hunger_result}**'
 
+    return to_send
+
+
+def feat(feat_name: str):
+    feat_name = feat_name.lower()
+    with open('dndfeats.json') as feat_file:
+        feat_data = json.load(feat_file)
+        try:
+            feat = feat_data["feat"][feat_name]
+        except KeyError:
+            temp = find_feature(feat_name, feat_data, 'spell')
+            if temp is None:
+                return f'{feat_name} not found.'
+            feat_name = temp
+            feat = feat_data["spell"][feat_name]
+
+    to_send = f'>>> {feat["name"]}\n' \
+              f'{feat["desc"]}'
     return to_send
 
 

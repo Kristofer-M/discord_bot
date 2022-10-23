@@ -1,6 +1,8 @@
 import asyncio
+import datetime
 import os
 import random
+import pytz
 
 import discord
 from discord.ext import commands
@@ -8,9 +10,12 @@ from discord.ext import commands
 import dnd
 import scheduling
 
-emoji = '<:madge:889181914236350484>'
-target = 'seiarc#7644'
-bot = commands.Bot(command_prefix='!', activity=discord.Game(name="Under Construction"))
+# emoji = '<:madge:889181914236350484>'
+target = ''
+intents = discord.Intents.default()
+intents.message_content = True
+bot = commands.Bot(command_prefix='!', activity=discord.Game(name="Under Construction"), intents=intents)
+mydt = datetime.datetime.now().astimezone(pytz.timezone('Europe/Berlin'))
 
 win = {
     'rock': 'scissors',
@@ -118,11 +123,27 @@ async def spell(context, *args):
 
 
 @bot.command()
+async def feat(context, *args):
+    args = ' '.join(args)
+    to_send = dnd.feat(args)
+    try:
+        await context.channel.send(to_send)
+    except discord.errors.HTTPException:
+        await context.channel.send(to_send[:1997] + '...')
+        await context.channel.send('>>> ...' + to_send[1997:])
+
+
+@bot.command()
 async def roll(context, *args):
     args = ' '.join(args)
     result = dnd.roll(args)
     await context.channel.send(result)
 
+@bot.command()
+async def battle(context, target, *args):
+    args = ' '.join(args)
+    result = dnd.battle(target, args)
+    await context.channel.send(result)
 
 @bot.command()
 async def rollv(context, number, hunger=None, target=None):
@@ -143,8 +164,17 @@ async def rerollv(context, number, hunger=None, target=None):
 
 
 @bot.command()
-async def test(context, *args):
-    pass
+async def rollm(context, number, success_criteria):
+    number = int(number)
+    success_criteria = int(success_criteria)
+    result = dnd.rollm(number, success_criteria)
+    await context.channel.send(result)
+
+
+@rollm.error
+async def rollm_error(context, error):
+    if isinstance(error, discord.ext.commands.errors.MissingRequiredArgument):
+        await context.channel.send('To use the command, type:\n`!rollm [number of rolls] [difficulty class]`')
 
 
 @bot.command()
@@ -200,7 +230,10 @@ async def game(context, choice):
 
 
 @bot.command()
-async def timecode(context, year, month, day, hour, minute):
+async def timecode(context, hour, minute,
+                   day=mydt.now().day,
+                   month=mydt.now().month,
+                   year=mydt.now().year):
     result = scheduling.timecode(year, month, day, hour, minute)
     await context.send(result)
 
@@ -216,4 +249,5 @@ async def set_emoji(new_emoji):
 
 
 if __name__ == '__main__':
-    bot.run(os.getenv('DISCORD_BOT_TOKEN'))
+    token = os.getenv('DISCORD_TOKEN')
+    bot.run(token)
