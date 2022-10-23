@@ -167,17 +167,19 @@ def rollv(number, hunger, target):
 #     return to_send
 
 
-def rerollv(message, amount, hunger, target):
+def rerollv(message: str, amount, hunger, target):
     numbers = []
-    for char in message:
-        if char == ']':
-            break
-        if str.isdigit(char):
-            numbers.append(int(char))
+    message = message[message.index('[') + 1:message.index(']')]
+    str_nums = message.split(',')
+    for num in str_nums:
+        numbers.append(int(num))
+    if hunger is not None:
+        temp_numbers = numbers[:-int(hunger)]
+    else:
+        temp_numbers = numbers
+    # range_num = 0 if hunger is None else int(hunger)
 
-    range_num = 0 if hunger is None else int(hunger)
-
-    smallest_nums = get_smallest_nums(amount, numbers, range_num)
+    smallest_nums = get_smallest_nums(int(amount), temp_numbers)
 
     for num in smallest_nums:
         numbers[numbers.index(num)] = random.randint(1, 10)
@@ -187,17 +189,18 @@ def rerollv(message, amount, hunger, target):
     return to_send
 
 
-def get_smallest_nums(amount, numbers, range_num):
-    smallest_nums = []
-    for i in range(len(numbers) - range_num):
-        if len(smallest_nums) < int(amount):
-            smallest_nums.append(numbers[i])
-        else:
-            for j in range(len(smallest_nums)):
-                if numbers[i] < smallest_nums[j]:
-                    smallest_nums[j] = numbers[i]
-                    break
-    return smallest_nums
+def get_smallest_nums(amount, numbers):
+    # smallest_nums = []
+    # for i in range(len(numbers) - range_num):
+    #     if len(smallest_nums) < int(amount):
+    #         smallest_nums.append(numbers[i])
+    #     else:
+    #         for j in range(len(smallest_nums)):
+    #             if numbers[i] < smallest_nums[j]:
+    #                 smallest_nums[j] = numbers[i]
+    #                 break
+    numbers.sort()
+    return numbers[:amount]
 
 
 def rollm(number, success_criteria):
