@@ -7,7 +7,7 @@ import pytz
 import discord
 from discord.ext import commands
 
-import dnd
+import dnd, mta, vtm
 import scheduling
 
 # '<:madge:889181914236350484>' '<:bonk:819935649268105247>' 'HUNDmiau#3769'
@@ -173,7 +173,7 @@ async def battle(context, target, *args):
 
 @bot.command()
 async def rollv(context, number, hunger=None, target=None):
-    result = dnd.rollv(number, hunger, target)
+    result = vtm.rollv(number, hunger, target)
     await context.channel.send(result)
 
 
@@ -184,16 +184,17 @@ async def rerollv(context: discord.ext.commands.Context, number, hunger=None, ta
     async for message in c_history:
         if str(message.author) == "Wizard's Assistant#0029":
             if 'Roll' in str(message.content):
-                result = dnd.rerollv(str(message.content), number, hunger, target)
+                result = vtm.rerollv(str(message.content), number, hunger, target)
                 break
     await context.channel.send(result)
 
 
+# MAGE: THE ASCENSION COMMANDS
 @bot.command()
 async def rollm(context, number, success_criteria):
     number = int(number)
     success_criteria = int(success_criteria)
-    result = dnd.rollm(number, success_criteria)
+    result = mta.rollm(number, success_criteria)
     await context.channel.send(result)
 
 
