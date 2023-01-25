@@ -312,7 +312,7 @@ def oracle(possibility=0):
 def keyword(num: int):
     to_send = '>>> '
     for i in range(num):
-        result = int(dice.roll('1d800'))
+        result = int(dice.roll('1d798'))
         to_send += keywords[result]
     return to_send
 
