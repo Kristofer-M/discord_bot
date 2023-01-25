@@ -15,6 +15,33 @@ from simpleeval import simple_eval
 #     '/',
 #     '-'
 # ]
+oracle_results = {}
+
+for number in range(-7, 29):
+    if number <= 2:
+        oracle_results[number] = 'No, and'
+    elif number <= 7:
+        oracle_results[number] = 'No'
+    elif number <= 9:
+        oracle_results[number] = 'No, but'
+    elif number == 10:
+        oracle_results[number] = 'Maybe'
+    elif number <= 12:
+        oracle_results[number] = 'Yes, but'
+    elif number <= 18:
+        oracle_results[number] = 'Yes'
+    else:
+        oracle_results[number] = 'Yes, and'
+
+keywords = {}
+with open('keywords.txt', 'r') as f:
+    for line in f.readlines():
+        try:
+            parsed_line = line.split('. ')
+            keywords[int(parsed_line[0])] = parsed_line[1]
+        except:
+            print(line)
+            raise IndexError
 
 die_regex = '[0-9]+d[0-9]+'
 word_regex = f'[^\d\W]+'
@@ -275,5 +302,20 @@ def feat(feat_name: str):
     return to_send
 
 
+def oracle(possibility=0):
+    result = int(dice.roll('1d20'))
+    result += possibility
+    print(result)
+    return oracle_results[result]
+
+
+def keyword(num: int):
+    to_send = '>>> '
+    for i in range(num):
+        result = int(dice.roll('1d800'))
+        to_send += keywords[result]
+    return to_send
+
+
 if __name__ == '__main__':
-    print(roll("1d10 * 2d10"))
+    print(keyword(3))

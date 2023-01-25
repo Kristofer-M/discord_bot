@@ -10,8 +10,9 @@ from discord.ext import commands
 import dnd
 import scheduling
 
-# emoji = '<:madge:889181914236350484>'
-target = ''
+# '<:madge:889181914236350484>' '<:bonk:819935649268105247>' 'HUNDmiau#3769'
+emoji = None
+target = 'HUNDmiau#3769'
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix='!', activity=discord.Game(name="Under Construction"), intents=intents)
@@ -28,7 +29,7 @@ lose = {
     'paper': 'scissors'
 }
 
-emoji = {
+emojis = {
     'rock': '✊',
     'paper': '✋',
     'scissors': '✌️'
@@ -53,8 +54,8 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    if str(message.author) == target:
-        await message.add_reaction('emoji')
+    if emoji is not None and target is not None and str(message.author) == target:
+        await message.add_reaction(emoji)
 
     if 'thanos' in str(message.content).lower():
         await send_thanos(message)
@@ -79,6 +80,7 @@ async def send_message(context, text):
     await context.channel.send(text)
 
 
+# MEME COMMANDS
 @bot.command()
 async def pun(context):
     await context.channel.send(random.choice(puns))
@@ -94,6 +96,7 @@ async def madge(context):
     await context.message.add_reaction('<:madge:889181914236350484>')
 
 
+# ALARM COMMANDS
 @bot.command()
 async def alarm(context, day, time, *args):
     await scheduling.alarm(context, day, time, args)
@@ -109,6 +112,27 @@ async def stop(context, *args):
 @bot.command()
 async def stopall(context):
     await scheduling.stop_all(context)
+
+
+# D&D COMMANDS
+@bot.command()
+async def oracle(context, *args):
+    try:
+        args = int(' '.join(args))
+    except ValueError:
+        args = 0
+    to_send = dnd.oracle(args)
+    await context.channel.send(to_send)
+
+
+@bot.command()
+async def keyword(context, *args):
+    try:
+        args = int(' '.join(args))
+    except ValueError:
+        args = 1
+    to_send = dnd.keyword(args)
+    await context.channel.send(to_send)
 
 
 @bot.command()
@@ -139,11 +163,13 @@ async def roll(context, *args):
     result = dnd.roll(args)
     await context.channel.send(result)
 
+
 @bot.command()
 async def battle(context, target, *args):
     args = ' '.join(args)
     result = dnd.battle(target, args)
     await context.channel.send(result)
+
 
 @bot.command()
 async def rollv(context, number, hunger=None, target=None):
@@ -177,6 +203,7 @@ async def rollm_error(context, error):
         await context.channel.send('To use the command, type:\n`!rollm [number of rolls] [difficulty class]`')
 
 
+# MISCELLANEOUS COMMANDS
 @bot.command()
 async def exec(context, *args):
     if str(context.message.author) != 'FallenRune#8591':
@@ -207,24 +234,24 @@ async def game(context, choice):
         await context.send('Enter a valid option.')
         return
 
-    to_send += f'You picked {emoji[choice.lower()]}\n'
+    to_send += f'You picked {emojis[choice.lower()]}\n'
     # await context.send()
 
     outcome = random.choice(["You won", "You lost", "You drew"])
     bot_pick = ''
     if outcome == 'You won':
-        to_send += f'Bot picks {emoji[win[choice]]}\n'
+        to_send += f'Bot picks {emojis[win[choice]]}\n'
         # await context.send()
-        bot_pick = emoji[win[choice]]
+        bot_pick = emojis[win[choice]]
     elif outcome == 'You lost':
-        to_send += f'Bot picks {emoji[lose[choice]]}\n'
+        to_send += f'Bot picks {emojis[lose[choice]]}\n'
         # await context.send()
-        bot_pick = emoji[lose[choice]]
+        bot_pick = emojis[lose[choice]]
     else:
-        to_send += f'Bot picks {emoji[choice.lower()]}\n'
-        bot_pick = emoji[choice.lower()]
+        to_send += f'Bot picks {emojis[choice.lower()]}\n'
+        bot_pick = emojis[choice.lower()]
 
-    to_send += f'{emoji[choice.lower()]} vs {bot_pick}\n'
+    to_send += f'{emojis[choice.lower()]} vs {bot_pick}\n'
     to_send += outcome
     await context.send(to_send)
 
@@ -244,8 +271,8 @@ async def set_target(new_target):
 
 
 async def set_emoji(new_emoji):
-    global emoji
-    emoji = new_emoji
+    global emojis
+    emojis = new_emoji
 
 
 if __name__ == '__main__':
