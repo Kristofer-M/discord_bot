@@ -2,6 +2,7 @@ import json
 import random
 import re
 from math import log
+import numpy
 
 import dice
 from simpleeval import simple_eval
@@ -33,15 +34,29 @@ for number in range(-7, 29):
     else:
         oracle_results[number] = 'Yes, and'
 
-keywords = {}
-with open('keywords.txt', 'r') as f:
+keywords = []
+with open('keywords_new.txt', 'r') as f:
     for line in f.readlines():
-        try:
-            parsed_line = line.split('. ')
-            keywords[int(parsed_line[0])] = parsed_line[1]
-        except:
-            print(line)
-            raise IndexError
+        line = line.replace('\n', '')
+        keywords.append(line)
+
+professions = []
+with open('professions.txt', 'r') as f:
+    for line in f.readlines():
+        professions.append(line.replace('\n', ''))
+
+alignments = []
+for ge in ['Good', 'Neutral', 'Evil']:
+    for lc in ['Lawful', 'Neutral', 'Chaotic']:
+        if ge == lc:
+            alignments.append('True Neutral')
+        else:
+            alignments.append(f'{lc} {ge}')
+
+p_alignments = [15, 20, 25, 30, 50, 55, 70, 90, 100]
+
+employ = ['Commoner', 'Professional', 'Adventurer']
+employ_cum = [25, 90, 100]
 
 die_regex = '[0-9]+d[0-9]+'
 word_regex = f'[^\d\W]+'
@@ -157,6 +172,7 @@ def spell(spell_name):
                   f'{spell["upcast"]}'
     return to_send
 
+
 def feat(feat_name: str):
     feat_name = feat_name.lower()
     with open('dndfeats.json') as feat_file:
@@ -183,12 +199,68 @@ def oracle(possibility=0):
 
 
 def keyword(num: int):
-    to_send = '>>> '
+    result = '>>> '
     for i in range(num):
-        result = int(dice.roll('1d798'))
-        to_send += keywords[result]
-    return to_send
+        result += random.choice(keywords) + '\n'
+    return result
 
+
+""" RACES:
+"K'ohme Humans", "Vila", "Dawen", "Tara", "Dugrani", "Ulfeid Humans", "Changeling",
+               "Karskar", "Kaigen", "Qawyun", "Saelni", "Wistful Dwarves", "Draviaborn", "Goblins",
+               "Tieflings", "Aasimar", "Halfgoblin", "Saplings", "Genasi", "Azatiens", "Nesir'is"
+"""
+
+
+def race():
+    # SYNDRA
+    races = ["K'ohme Humans", "Vila", "Dawen", "Tara", "Dugrani", "Ulfeid Humans", "Changeling",
+             "Kaigen", "Qawyun", "Wistful Dwarves", "Draviaborn", "Goblins", "Tieflings", "Aasimar",
+             "Halfgoblin", "Genasi", "Azatiens"]
+    races_cum = [10, 12, 17, 32, 47, 49, 52,
+                 57, 67, 68, 69, 70, 72, 74,
+                 75, 76, 77]
+    return random.choices(races, cum_weights=races_cum)[0]
+
+
+def gender():
+    gender = ['Male', 'Female', 'Other']
+    gender_cum = [45, 90, 100]
+    return random.choices(gender, cum_weights=gender_cum)[0]
+
+
+def alignment():
+    return random.choices(alignments, cum_weights=p_alignments)[0]
+
+
+def profession():
+    return random.choice(professions)
+
+
+def employment():
+    result = random.choices(employ, cum_weights=employ_cum)[0]
+    if result == 'Professional':
+        return profession()
+    return result
+
+
+def generateNPC(number=1):
+    result = ''
+    for i in range(number):
+        result += f'{race()} {gender()} {employment()} {alignment()}'
+    return result
+
+
+def basicNPC(number=1):
+    result = ''
+    for i in range(number):
+        result += f'{race()} {gender()}\n'
+    return result
+
+
+# TODO: MAKE NAME GENERATOR 8)
+
+# TODO: MAKE DATA IN JSON
 
 if __name__ == '__main__':
-    print(keyword(3))
+    print(keyword(10))

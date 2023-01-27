@@ -1,0 +1,50 @@
+Farmer
+Miller
+Artist
+Executioner
+Herbalist
+Restauranteur
+Horse trainer
+Priest / Cultist
+Blacksmith
+Engineer
+Finesmith
+Scribe
+Locksmith
+Soldier
+Jeweller
+Banker
+Entertainer
+Apothecary
+Teacher
+Woodcutter
+Armourer
+Tax Collector
+Cook
+Prostitute
+Tailor
+Fishmonger
+Ropemaker
+Butcher
+Fletcher
+Fruiterer
+Cooper
+Conman
+Cartwright
+Petty thief
+Carpenter
+Healer
+Gravedigger / Undertaker
+Butler
+Winemaker
+Clerk
+Ferryman
+Baker
+Boatbuilder
+Cheesemaker
+Ship’s Captain
+Innkeeper
+Fortune Teller
+Dung Shoveller
+Handmaiden
+Courier
