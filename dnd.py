@@ -16,6 +16,12 @@ from simpleeval import simple_eval
 #     '/',
 #     '-'
 # ]
+
+races = None
+with open('races.json', 'r') as f:
+    races = json.load(f)
+default_location = None
+
 oracle_results = {}
 
 for number in range(-7, 29):
@@ -212,15 +218,21 @@ def keyword(num: int):
 """
 
 
-def race():
+def race(location=default_location):
     # SYNDRA
-    races = ["K'ohme Humans", "Vila", "Dawen", "Tara", "Dugrani", "Ulfeid Humans", "Changeling",
-             "Kaigen", "Qawyun", "Wistful Dwarves", "Draviaborn", "Goblins", "Tieflings", "Aasimar",
-             "Halfgoblin", "Genasi", "Azatiens"]
-    races_cum = [10, 12, 17, 32, 47, 49, 52,
-                 57, 67, 68, 69, 70, 72, 74,
-                 75, 76, 77]
-    return random.choices(races, cum_weights=races_cum)[0]
+    # races = ["K'ohme Humans", "Vila", "Dawen", "Tara", "Dugrani", "Ulfeid Humans", "Changeling",
+    #          "Kaigen", "Qawyun", "Wistful Dwarves", "Draviaborn", "Goblins", "Tieflings", "Aasimar",
+    #          "Halfgoblin", "Genasi", "Azatiens"]
+    # races_cum = [10, 12, 17, 32, 47, 49, 52,
+    #              57, 67, 68, 69, 70, 72, 74,
+    #              75, 76, 77]
+    if location is None:
+        raise TypeError
+    global default_location
+    default_location = location
+    race_data = races['location'][location]['races']
+    race_cump = races['location'][location]['cum_p']
+    return random.choices(race_data, cum_weights=race_cump)[0]
 
 
 def gender():
@@ -244,10 +256,10 @@ def employment():
     return result
 
 
-def generateNPC(number=1):
-    result = ''
+def generateNPC(location, number=1):
+    result = '>>> '
     for i in range(number):
-        result += f'{race()} {gender()} {employment()} {alignment()}'
+        result += f'{race(location)} {gender()} {employment()} {alignment()}\n'
     return result
 
 
@@ -263,4 +275,4 @@ def basicNPC(number=1):
 # TODO: MAKE DATA IN JSON
 
 if __name__ == '__main__':
-    print(keyword(10))
+    print(generateNPC('Syndra', 100))
