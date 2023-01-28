@@ -1,0 +1,44 @@
+{
+  "location":
+  {
+    "Syndra":
+    {
+      "races": ["K'ohme Humans", "Vila", "Dawen", "Tara", "Dugrani", "Ulfeid Humans", "Changeling",
+             "Kaigen", "Qawyun", "Wistful Dwarves", "Draviaborn", "Goblins", "Tieflings", "Aasimar",
+             "Halfgoblin", "Genasi", "Azatiens"],
+      "cum_p": [10, 12, 17, 32, 47, 49, 52,
+                 57, 67, 68, 69, 70, 72, 74,
+                 75, 76, 77]
+    },
+    "Odraukia":
+    {
+      "races": [],
+      "cum_p": []
+    },
+    "Levaria":
+    {
+      "races": [],
+      "cum_p": []
+    },
+    "Heartlands":
+    {
+      "races": [],
+      "cum_p": []
+    },
+    "Shivering Dhuxha":
+    {
+      "races": [],
+      "cum_p": []
+    },
+    "Ustinal Wastes":
+    {
+      "races": [],
+      "cum_p": []
+    },
+    "Veridian":
+    {
+      "races": [],
+      "cum_p": []
+    }
+  }
+}

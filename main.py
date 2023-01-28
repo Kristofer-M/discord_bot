@@ -136,9 +136,13 @@ async def keyword(context, *args):
 
 
 @bot.command()
-async def generateNPC(context, number=1):
-    to_send = dnd.generateNPC(number)
+async def generateNPC(context, location, number=1):
+    if location.isnumeric():
+        number = int(location)
+        location = None
+    to_send = dnd.generateNPC(location, number)
     await context.channel.send(to_send)
+
 
 @bot.command()
 async def spell(context, *args):
